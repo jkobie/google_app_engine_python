@@ -1,18 +1,16 @@
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
+import webapp2
 
-class MainPage(webapp.RequestHandler):
+from google.appengine.api import users
+
+class MainPage(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write('Hello, webapp World!\n')
-        self.response.out.write('Hello, what is your name? !')
+        user = users.get_current_user()
 
-application = webapp.WSGIApplication(
-                                     [('/', MainPage)],
-                                     debug=True)
+        if user:
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.out.write('Hello, ' + user.nickname())
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
 
-def main():
-    run_wsgi_app(application)
-
-if __name__ == "__main__":
-    main()
+app = webapp2.WSGIApplication([('/', MainPage)],
+                              debug=True)
